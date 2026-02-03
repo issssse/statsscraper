@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visitor Counter</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Event Views</h1>
+  </header>
+  <main>
+    <section class="card">
+      <canvas id="chart" aria-label="Visitor counter chart" role="img"></canvas>
+      <div class="meta">
+        <span id="status" class="badge">Loading…</span>
+        <span id="details"></span>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    // Derive raw CSV URL for GitHub Pages or fallback to defaults
+    const ownerFromHost = window.location.hostname.split('.')[0] || 'USERNAME';
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const repoFromPath = pathParts[0] || 'statsscraper';
+    const RAW_BASE = `https://raw.githubusercontent.com/${ownerFromHost}/${repoFromPath}/main`;
+    const CSV_URL = `${RAW_BASE}/data/visitor_counter.csv`;
+    const TZ = "Europe/Stockholm"; // adjust if needed
+    const REFRESH_MS = 3 * 60 * 1000;
+    const NIGHT_START = 21;
+    const NIGHT_END = 7;
+
+    let chart;
+
+    async function fetchCsv() {
+      const res = await fetch(`${CSV_URL}?t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+      const text = await res.text();
+      return text;
+    }
+
+    function parseCsv(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return [];
+      const rows = lines.slice(1);
+      return rows.map((line, idx) => {
+        const [ts, val] = line.split(",");
+        const raw = Number(val);
+        if (!Number.isFinite(raw)) return null;
+        const corrected = Math.max(raw - (idx + 1), 0);
+        return { t: new Date(ts), raw, corrected };
+      }).filter(Boolean);
+    }
+
+    function buildNightBoxes(points) {
+      if (!points.length) return [];
+      const start = new Date(points[0].t);
+      const end = new Date(points.at(-1).t);
+      const boxes = [];
+      const day = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+      while (day < end) {
+        const nightStart = new Date(day);
+        nightStart.setUTCHours(NIGHT_START, 0, 0, 0);
+        const nightEnd = new Date(day);
+        if (NIGHT_START > NIGHT_END) nightEnd.setUTCDate(nightEnd.getUTCDate() + 1);
+        nightEnd.setUTCHours(NIGHT_END, 0, 0, 0);
+        boxes.push({
+          type: 'box',
+          xMin: nightStart,
+          xMax: nightEnd,
+          backgroundColor: 'rgba(0,0,0,0.04)',
+          borderWidth: 0,
+          drawTime: 'beforeDatasetsDraw'
+        });
+        day.setUTCDate(day.getUTCDate() + 1);
+      }
+      return boxes;
+    }
+
+    function render(points) {
+      const dataRaw = points.map(p => ({ x: p.t, y: p.raw }));
+      const dataCorrected = points.map(p => ({ x: p.t, y: p.corrected }));
+      const annotations = buildNightBoxes(points);
+
+      const config = {
+        type: 'line',
+        data: {
+          datasets: [
+            {
+              label: 'Corrected',
+              data: dataCorrected,
+              borderColor: '#0f8ec7',
+              backgroundColor: 'rgba(15,142,199,0.08)',
+              tension: 0.15,
+              pointRadius: 0,
+              borderWidth: 2.4,
+            },
+            {
+              label: 'Raw',
+              data: dataRaw,
+              borderColor: '#9aa4b5',
+              borderDash: [4, 4],
+              tension: 0.1,
+              pointRadius: 0,
+              borderWidth: 1.8,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'nearest', intersect: false },
+          scales: {
+            x: {
+              type: 'time',
+              time: { tooltipFormat: 'yyyy-MM-dd HH:mm' },
+              grid: { color: 'rgba(15,23,42,0.05)' }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: '#e3e8ef' }
+            }
+          },
+          plugins: {
+            legend: { labels: { usePointStyle: true } },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${ctx.formattedValue}`
+              }
+            },
+            annotation: { annotations }
+          }
+        }
+      };
+
+      if (chart) {
+        chart.data = config.data;
+        chart.options = config.options;
+        chart.update();
+      } else {
+        chart = new Chart(document.getElementById('chart'), config);
+      }
+    }
+
+    async function loadAndRender() {
+      try {
+        const csv = await fetchCsv();
+        const points = parseCsv(csv);
+        render(points);
+        const updated = points.length ? points.at(-1).t : new Date();
+        document.getElementById('status').textContent = `Updated ${updated.toLocaleString(undefined, { timeZone: TZ })}`;
+        document.getElementById('details').textContent = `${points.length} samples · auto-refreshing`; 
+      } catch (err) {
+        document.getElementById('status').textContent = 'Error loading data';
+        console.error(err);
+      }
+    }
+
+    loadAndRender();
+    setInterval(loadAndRender, REFRESH_MS);
+  </script>
+</body>
+</html>
