@@ -36,7 +36,7 @@ jobs:
 
       - name: Run scraper
         env:
-          SCRAPER_URL: ${{ secrets.SCRAPER_URL || '' }}
+          SCRAPER_URL: ${{ secrets.SCRAPER_URL }}
           SCRAPER_OUT_CSV: data/visitor_counter.csv
         run: python scrape.py
 
