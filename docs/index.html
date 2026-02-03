@@ -10,18 +10,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.1/dist/chartjs-plugin-annotation.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Event Views</h1>
-  </header>
-  <main>
-    <section class="card">
-      <canvas id="chart" aria-label="Visitor counter chart" role="img"></canvas>
-      <div class="meta">
-        <span id="status" class="badge">Loading…</span>
-        <span id="details"></span>
-      </div>
-    </section>
-  </main>
+  <div id="layout">
+    <canvas id="chart" aria-label="Visitor counter chart" role="img"></canvas>
+    <div class="meta">
+      <span id="status" class="badge">Loading…</span>
+    </div>
+  </div>
 
   <script type="module">
     // Derive raw CSV URL for GitHub Pages or fallback to defaults
@@ -32,8 +26,8 @@
     const CSV_URL = `${RAW_BASE}/data/visitor_counter.csv`;
     const TZ = "Europe/Stockholm"; // adjust if needed
     const REFRESH_MS = 3 * 60 * 1000;
-    const NIGHT_START = 21;
-    const NIGHT_END = 7;
+    const NIGHT_START = 22;
+    const NIGHT_END = 6;
 
     let chart;
 
@@ -73,7 +67,7 @@
           type: 'box',
           xMin: nightStart,
           xMax: nightEnd,
-          backgroundColor: 'rgba(0,0,0,0.04)',
+          backgroundColor: 'rgba(255,255,255,0.05)',
           borderWidth: 0,
           drawTime: 'beforeDatasetsDraw'
         });
@@ -83,7 +77,6 @@
     }
 
     function render(points) {
-      const dataRaw = points.map(p => ({ x: p.t, y: p.raw }));
       const dataCorrected = points.map(p => ({ x: p.t, y: p.corrected }));
       const annotations = buildNightBoxes(points);
 
@@ -99,34 +92,28 @@
               tension: 0.15,
               pointRadius: 0,
               borderWidth: 2.4,
-            },
-            {
-              label: 'Raw',
-              data: dataRaw,
-              borderColor: '#9aa4b5',
-              borderDash: [4, 4],
-              tension: 0.1,
-              pointRadius: 0,
-              borderWidth: 1.8,
             }
           ]
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           interaction: { mode: 'nearest', intersect: false },
           scales: {
             x: {
               type: 'time',
-              time: { tooltipFormat: 'yyyy-MM-dd HH:mm' },
-              grid: { color: 'rgba(15,23,42,0.05)' }
+              time: { tooltipFormat: 'yyyy-MM-dd HH:mm', unit: 'day', displayFormats: { day: 'MMM d' } },
+              ticks: { color: '#cbd5e1', maxRotation: 0, autoSkip: true },
+              grid: { color: 'rgba(255,255,255,0.08)' }
             },
             y: {
               beginAtZero: true,
-              grid: { color: '#e3e8ef' }
+              ticks: { color: '#cbd5e1' },
+              grid: { color: 'rgba(255,255,255,0.08)' }
             }
           },
           plugins: {
-            legend: { labels: { usePointStyle: true } },
+            legend: { display: false },
             tooltip: {
               callbacks: {
                 label: ctx => `${ctx.dataset.label}: ${ctx.formattedValue}`
@@ -153,7 +140,6 @@
         render(points);
         const updated = points.length ? points.at(-1).t : new Date();
         document.getElementById('status').textContent = `Updated ${updated.toLocaleString(undefined, { timeZone: TZ })}`;
-        document.getElementById('details').textContent = `${points.length} samples · auto-refreshing`; 
       } catch (err) {
         document.getElementById('status').textContent = 'Error loading data';
         console.error(err);

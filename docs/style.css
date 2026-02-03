@@ -1,66 +1,55 @@
 :root {
-  --bg: #f7f9fb;
-  --panel: #ffffff;
-  --text: #0f172a;
-  --muted: #6b7280;
-  --accent: #0f8ec7;
-  --accent-soft: rgba(15, 142, 199, 0.08);
-  --grid: #e3e8ef;
+  --bg: #0b1220;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #4cc9f0;
+  --accent-soft: rgba(76, 201, 240, 0.12);
+  --grid: rgba(255, 255, 255, 0.06);
 }
 
 * { box-sizing: border-box; }
-body {
+html, body {
   margin: 0;
+  height: 100%;
+}
+body {
   font-family: "Inter", "Helvetica Neue", system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at 20% 20%, #eef3ff 0, rgba(238,243,255,0) 35%),
-              radial-gradient(circle at 80% 0%, #e6f7ff 0, rgba(230,247,255,0) 30%),
+  background: radial-gradient(circle at 20% 20%, rgba(76, 201, 240, 0.12) 0, rgba(76, 201, 240, 0) 35%),
+              radial-gradient(circle at 80% 0%, rgba(139, 92, 246, 0.1) 0, rgba(139, 92, 246, 0) 30%),
               var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  overflow: hidden;
 }
-header {
-  padding: 32px 24px 12px;
-  text-align: center;
+
+#layout {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
 }
-h1 {
-  margin: 0;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
-main {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 24px 48px;
-}
-.card {
-  background: var(--panel);
-  border: 1px solid rgba(15,23,42,0.04);
-  box-shadow: 0 12px 30px rgba(15,23,42,0.06);
-  border-radius: 16px;
-  padding: 20px 20px 12px;
-}
+
 .meta {
+  position: absolute;
+  top: 12px;
+  left: 12px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 12px 4px 4px;
+  gap: 8px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
+  z-index: 10;
+  backdrop-filter: blur(6px);
 }
+
 .badge {
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 600;
-  letter-spacing: 0.1px;
-}
-canvas {
-  width: 100% !important;
-  height: 400px !important;
-}
-@media (max-width: 640px) {
-  canvas { height: 320px !important; }
-  header { padding: 24px 16px 8px; }
-  main { padding: 0 16px 36px; }
+  letter-spacing: 0.08px;
 }
