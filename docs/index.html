@@ -67,11 +67,32 @@
           type: 'box',
           xMin: nightStart,
           xMax: nightEnd,
-          backgroundColor: 'rgba(0,0,0,0.05)',
+          backgroundColor: 'rgba(0,0,0,0.06)',
           borderWidth: 0,
           drawTime: 'beforeDatasetsDraw'
         });
         day.setUTCDate(day.getUTCDate() + 1);
+      }
+      return boxes;
+    }
+
+    function buildGapBoxes(points, maxHoursGap = 12) {
+      if (points.length < 2) return [];
+      const boxes = [];
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const curr = points[i];
+        const diffHours = (curr.t - prev.t) / 36e5;
+        if (diffHours > maxHoursGap) {
+          boxes.push({
+            type: 'box',
+            xMin: prev.t,
+            xMax: curr.t,
+            backgroundColor: 'rgba(255, 99, 132, 0.12)', // light red gap highlight
+            borderWidth: 0,
+            drawTime: 'beforeDatasetsDraw',
+          });
+        }
       }
       return boxes;
     }
@@ -94,7 +115,10 @@
 
     function render(points) {
       const dataCorrected = withGaps(points, 12);
-      const annotations = buildNightBoxes(points);
+      const annotations = [
+        ...buildNightBoxes(points),
+        ...buildGapBoxes(points, 12),
+      ];
 
       const config = {
         type: 'line',
