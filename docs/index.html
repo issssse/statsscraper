@@ -67,7 +67,7 @@
           type: 'box',
           xMin: nightStart,
           xMax: nightEnd,
-          backgroundColor: 'rgba(255,255,255,0.05)',
+          backgroundColor: 'rgba(0,0,0,0.05)',
           borderWidth: 0,
           drawTime: 'beforeDatasetsDraw'
         });
@@ -120,13 +120,13 @@
             x: {
               type: 'time',
               time: { tooltipFormat: 'yyyy-MM-dd HH:mm', unit: 'day', displayFormats: { day: 'MMM d' } },
-              ticks: { color: '#cbd5e1', maxRotation: 0, autoSkip: true },
-              grid: { color: 'rgba(255,255,255,0.08)' }
+              ticks: { color: '#334155', maxRotation: 0, autoSkip: true },
+              grid: { color: 'rgba(15,23,42,0.08)' }
             },
             y: {
               beginAtZero: true,
-              ticks: { color: '#cbd5e1' },
-              grid: { color: 'rgba(255,255,255,0.08)' }
+              ticks: { color: '#334155' },
+              grid: { color: 'rgba(15,23,42,0.08)' }
             }
           },
           plugins: {

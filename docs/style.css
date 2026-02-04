@@ -1,10 +1,10 @@
 :root {
-  --bg: #0b1220;
-  --text: #e5e7eb;
-  --muted: #9ca3af;
-  --accent: #4cc9f0;
-  --accent-soft: rgba(76, 201, 240, 0.12);
-  --grid: rgba(255, 255, 255, 0.06);
+  --bg: #f6f8fb;
+  --text: #0f172a;
+  --muted: #4b5563;
+  --accent: #0f8ec7;
+  --accent-soft: rgba(15, 142, 199, 0.12);
+  --grid: rgba(15, 23, 42, 0.08);
 }
 
 * { box-sizing: border-box; }
@@ -14,8 +14,8 @@ html, body {
 }
 body {
   font-family: "Inter", "Helvetica Neue", system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at 20% 20%, rgba(76, 201, 240, 0.12) 0, rgba(76, 201, 240, 0) 35%),
-              radial-gradient(circle at 80% 0%, rgba(139, 92, 246, 0.1) 0, rgba(139, 92, 246, 0) 30%),
+  background: radial-gradient(circle at 20% 20%, rgba(15, 142, 199, 0.15) 0, rgba(15, 142, 199, 0) 32%),
+              radial-gradient(circle at 80% 0%, rgba(99, 102, 241, 0.08) 0, rgba(99, 102, 241, 0) 26%),
               var(--bg);
   color: var(--text);
   overflow: hidden;
