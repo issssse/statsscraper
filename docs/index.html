@@ -76,8 +76,24 @@
       return boxes;
     }
 
+    function withGaps(points, maxHoursGap = 12) {
+      if (!points.length) return [];
+      const out = [{ x: points[0].t, y: points[0].corrected }];
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const curr = points[i];
+        const diffHours = (curr.t - prev.t) / 36e5;
+        if (diffHours > maxHoursGap) {
+          // insert a gap marker to break the line
+          out.push({ x: new Date(prev.t.getTime() + 1000), y: null });
+        }
+        out.push({ x: curr.t, y: curr.corrected });
+      }
+      return out;
+    }
+
     function render(points) {
-      const dataCorrected = points.map(p => ({ x: p.t, y: p.corrected }));
+      const dataCorrected = withGaps(points, 12);
       const annotations = buildNightBoxes(points);
 
       const config = {
@@ -92,6 +108,7 @@
               tension: 0.15,
               pointRadius: 0,
               borderWidth: 2.4,
+              spanGaps: false,
             }
           ]
         },
