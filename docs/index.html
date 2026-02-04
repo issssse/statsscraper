@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <script src="https://unpkg.com/chartjs-plugin-annotation@3.1.1/dist/chartjs-plugin-annotation.min.js"></script>
 </head>
 <body>
   <div id="layout">
@@ -30,7 +30,15 @@
     const NIGHT_START = 22;
     const NIGHT_END = 6;
     const VERSION = "v2026.02.04";
-    const TOOLTIP_MAX_PX = 80;
+    const TOOLTIP_MAX_PX = 60;
+
+    // Register plugins explicitly (needed for CDN globals)
+    const annotationPlugin = window['chartjs-plugin-annotation'] || window.ChartAnnotation;
+    if (annotationPlugin) {
+      Chart.register(annotationPlugin);
+    } else {
+      console.warn("Annotation plugin not found; shading will be disabled");
+    }
 
     let chart;
 
@@ -142,6 +150,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          events: [], // disable default hover handling; we manage it manually
           interaction: { mode: 'nearest', intersect: false },
           scales: {
             x: {
