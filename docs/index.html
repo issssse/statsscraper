@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-  <script src="https://unpkg.com/chartjs-plugin-annotation@3.1.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
 </head>
 <body>
   <div id="layout">
@@ -30,7 +30,7 @@
     const NIGHT_START = 22;
     const NIGHT_END = 6;
     const VERSION = "v2026.02.04";
-    const TOOLTIP_MAX_PX = 60;
+    const TOOLTIP_MAX_PX = 50;
 
     // Register plugins explicitly (needed for CDN globals)
     const annotationPlugin = window['chartjs-plugin-annotation'] || window.ChartAnnotation;
@@ -189,7 +189,11 @@
 
     function setupHoverThreshold(chartInstance) {
       const canvas = chartInstance.canvas;
-      const clearActive = () => { chartInstance.setActiveElements([]); chartInstance.update(); };
+      const clearActive = () => {
+        chartInstance.setActiveElements([]);
+        chartInstance.tooltip.setActiveElements([], {x: 0, y: 0});
+        chartInstance.update('none');
+      };
 
       canvas.addEventListener('mousemove', (event) => {
         const points = chartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: false }, false);
@@ -203,8 +207,10 @@
         if (dist > TOOLTIP_MAX_PX) {
           clearActive();
         } else {
-          chartInstance.setActiveElements([p]);
-          chartInstance.update();
+          const active = [{ datasetIndex: p.datasetIndex, index: p.index }];
+          chartInstance.setActiveElements(active);
+          chartInstance.tooltip.setActiveElements(active, { x: event.offsetX, y: event.offsetY });
+          chartInstance.update('none');
         }
       });
 
