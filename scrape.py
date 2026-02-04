@@ -43,6 +43,15 @@ class ScrapeConfig:
 
     @classmethod
     def from_env_and_args(cls, args: argparse.Namespace) -> "ScrapeConfig":
+        def pick(arg_val, env_name: str, default):
+            """Choose arg value, else non-empty env, else default."""
+            if arg_val not in (None, ""):
+                return arg_val
+            env_val = os.getenv(env_name)
+            if env_val not in (None, ""):
+                return env_val
+            return default
+
         def env_float(name: str, default: float) -> float:
             try:
                 return float(os.getenv(name, default))
@@ -50,9 +59,9 @@ class ScrapeConfig:
                 return default
 
         return cls(
-            url=args.url or os.getenv("SCRAPER_URL", DEFAULT_URL),
-            out_csv=args.out or os.getenv("SCRAPER_OUT_CSV", DEFAULT_OUT_CSV),
-            user_agent=args.user_agent or os.getenv("SCRAPER_USER_AGENT", DEFAULT_USER_AGENT),
+            url=pick(args.url, "SCRAPER_URL", DEFAULT_URL),
+            out_csv=pick(args.out, "SCRAPER_OUT_CSV", DEFAULT_OUT_CSV),
+            user_agent=pick(args.user_agent, "SCRAPER_USER_AGENT", DEFAULT_USER_AGENT),
             connect_timeout=env_float("SCRAPER_CONNECT_TIMEOUT", args.connect_timeout or 10.0),
             read_timeout=env_float("SCRAPER_READ_TIMEOUT", args.read_timeout or 30.0),
             retries=int(os.getenv("SCRAPER_RETRIES", args.retries or 3)),
@@ -154,6 +163,8 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
     try:
+        if not cfg.url:
+            raise requests.RequestException("Empty URL after config resolution")
         response = session.get(
             cfg.url,
             headers=headers,
