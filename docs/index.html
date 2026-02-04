@@ -15,6 +15,7 @@
     <div class="meta">
       <span id="status" class="badge">Loading…</span>
     </div>
+    <div class="version" id="version"></div>
   </div>
 
   <script type="module">
@@ -28,6 +29,8 @@
     const REFRESH_MS = 3 * 60 * 1000;
     const NIGHT_START = 22;
     const NIGHT_END = 6;
+    const VERSION = "v2026.02.04";
+    const TOOLTIP_MAX_PX = 80;
 
     let chart;
 
@@ -171,7 +174,32 @@
         chart.update();
       } else {
         chart = new Chart(document.getElementById('chart'), config);
+        setupHoverThreshold(chart);
       }
+    }
+
+    function setupHoverThreshold(chartInstance) {
+      const canvas = chartInstance.canvas;
+      const clearActive = () => { chartInstance.setActiveElements([]); chartInstance.update(); };
+
+      canvas.addEventListener('mousemove', (event) => {
+        const points = chartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: false }, false);
+        if (!points.length) {
+          clearActive();
+          return;
+        }
+        const p = points[0];
+        const { x, y } = p.element;
+        const dist = Math.hypot(event.offsetX - x, event.offsetY - y);
+        if (dist > TOOLTIP_MAX_PX) {
+          clearActive();
+        } else {
+          chartInstance.setActiveElements([p]);
+          chartInstance.update();
+        }
+      });
+
+      canvas.addEventListener('mouseleave', clearActive);
     }
 
     async function loadAndRender() {
@@ -181,6 +209,7 @@
         render(points);
         const updated = points.length ? points.at(-1).t : new Date();
         document.getElementById('status').textContent = `Updated ${updated.toLocaleString(undefined, { timeZone: TZ })}`;
+        document.getElementById('version').textContent = VERSION;
       } catch (err) {
         document.getElementById('status').textContent = 'Error loading data';
         console.error(err);

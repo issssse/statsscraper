@@ -53,3 +53,12 @@ canvas {
   font-weight: 600;
   letter-spacing: 0.08px;
 }
+
+.version {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 600;
+}
